@@ -1,0 +1,165 @@
+<?php
+App::uses('AppShell', 'Console/Command');
+App::uses('BcManagerComponent', 'Controller/Component');
+
+class ResetShell extends AppShell {
+	
+/**
+ * startup 
+ */
+	public function startup() {
+		parent::startup();
+		$this->BcManager = new BcManagerComponent(new ComponentCollection());
+	}
+	
+/**
+ * init
+ */
+	public function main() {
+
+		$dbConfig = getDbConfig();
+		
+		// データベース初期化
+		if (!$this->BcManager->initDb($dbConfig)) {
+			$message = "データベースの初期化に失敗しました";
+			$this->log($message);
+			$this->err($message);
+			return;
+		}
+
+		// キャッシュ削除
+		clearAllCache();
+
+		// ユーザー作成
+		if (!$this->_initDemoUsers()) {
+			$message = "ユーザー「operator」の作成に失敗しました";
+			$this->log($message);
+			$this->err($message);
+			return;
+		}
+
+		// サイト設定
+		if (!$this->_initDemoSiteConfigs()) {
+			$message = "システム設定の更新に失敗しました";
+			$this->log($message);
+			$this->err($message);
+			return;
+		}
+
+		// DBデータの初期更新
+		if (!$this->BcManager->executeDefaultUpdates($dbConfig)) {
+			$message = "DBデータの初期更新に失敗しました。";
+			$this->log($message);
+			$this->err($message);
+			return;
+		}
+
+		// プラグイン有効化
+		if(!$this->_enablePlugins()) {
+			$message = "デモプラグインの有効化に失敗しました";
+			$this->log($message);
+			$this->err($message);
+			return;
+		}
+		
+		
+		
+		// テーマの配置
+		if (!$this->BcManager->deployTheme()) {
+			$message = "テーマの配置に失敗しました。";
+			$this->log($message);
+			$this->err($message);
+			return;
+		}
+
+		// テーマに管理画面のアセットをデプロイする
+		$this->BcManager->deleteDeployedAdminAssets();
+		if (!$this->BcManager->deployAdminAssets()) {
+			$message = "管理システムのアセットファイルの配置に失敗しました。";
+			$this->log($message);
+			$this->err($message);
+		}
+
+		// ページ初期化
+		// リクエストアクションでBlogControllerを利用する際、
+		// BlogContent モデルに、AppModel が利用されていて処理がうまくいかない為、
+		// 一旦、ClassRegistry を初期化する
+		ClassRegistry::flush();
+		if (!$this->BcManager->createPageTemplates()) {
+			$message = "ページテンプレートの更新に失敗しました";
+			$this->log($message);
+			$this->err($message);
+			return;
+		}
+
+		$this->BcManager->setInstallSetting('BcApp.mobile', 'true');
+		$this->BcManager->setInstallSetting('BcApp.smartphone', 'true');
+		
+		clearAllCache();
+
+		$this->out("デモデータを初期化しました。");
+		
+	}
+	
+/**
+ * サイト設定の初期化
+ * 
+ * @return boolean
+ */
+	protected function _initDemoSiteConfigs() {
+		$SiteConfig = ClassRegistry::init('SiteConfig');
+		$siteConfig = $SiteConfig->findExpanded();
+		$siteConfig['address'] = '福岡県福岡市博多区博多駅前';
+		return $SiteConfig->saveKeyValue($siteConfig);
+	}
+
+/**
+ * 初期ユーザーの作成
+ * 
+ * @return boolean 
+ */
+	protected function _initDemoUsers() {
+		
+		App::uses('AuthComponent', 'Controller/Component');
+		$User = ClassRegistry::init('User');
+
+		$ret = true;
+		$user['User']['name'] = 'admin';
+		$user['User']['password'] = 'demodemo';
+		$user['User']['password_1'] = 'demodemo';
+		$user['User']['password_2'] = 'demodemo';
+		$user['User']['real_name_1'] = 'admin';
+		$user['User']['user_group_id'] = 1;
+		$User->create($user);
+		if (!$User->save()) {
+			$ret = false;
+		}
+
+		$user['User']['name'] = 'operator';
+		$user['User']['password'] = 'demodemo';
+		$user['User']['password_1'] = 'demodemo';
+		$user['User']['password_2'] = 'demodemo';
+		$user['User']['real_name_1'] = 'member';
+		$user['User']['user_group_id'] = 2;
+		$User->create($user);
+		if (!$User->save()) {
+			$ret = false;
+		}
+
+		return $ret;
+	}
+	
+/**
+ * 必要なプラグインを有効化する
+ * 
+ * 存在しない場合には有効化しない
+ */
+	protected function _enablePlugins() {
+		
+		$this->BcManager->installPlugin('BcDemo');
+		$this->BcManager->installPlugin('Uploader');
+		return true;
+		
+	}
+	
+}
