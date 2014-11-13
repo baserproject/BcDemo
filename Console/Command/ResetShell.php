@@ -73,7 +73,6 @@ class ResetShell extends AppShell {
 		}
 
 		// テーマに管理画面のアセットをデプロイする
-		$this->BcManager->deleteDeployedAdminAssets();
 		if (!$this->BcManager->deployAdminAssets()) {
 			$message = "管理システムのアセットファイルの配置に失敗しました。";
 			$this->log($message);
