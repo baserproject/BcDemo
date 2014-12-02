@@ -32,9 +32,9 @@ class BcDemoControllerEventListener extends BcControllerEventListener {
 		// 条件
 		// - モバイルサイト
 		// - コメントデータが送信されている
-		if($Controller->request->action == 'archives' && Configure::read('BcRequest.agent') == 'mobile' && isset($this->request->data['BlogComment'])) {
+		if($Controller->request->action == 'mobile_archives' && isset($Controller->request->data['BlogComment'])) {
 			$Controller->Session->setFlash('デモンストレーションモードの携帯サイトでコメントは送信できません。');
-			$Controller->requestAction('/');
+			$Controller->redirect('/');
 		}
 	}
 	
