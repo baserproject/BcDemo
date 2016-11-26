@@ -67,6 +67,13 @@ class ResetShell extends AppShell {
 			return;
 		}
 
+		// コアプラグインのインストール
+		$dbDataPattern = Configure::read('BcApp.defaultTheme') . '.default';
+		if(!$this->BcManager->installCorePlugin($dbConfig, $dbDataPattern)) {
+			$this->log('コアプラグインのインストールに失敗しました。');
+			$result = false;
+		}
+
 		// プラグイン有効化
 		if(!$this->_enablePlugins()) {
 			$message = "デモプラグインの有効化に失敗しました";
@@ -104,9 +111,6 @@ class ResetShell extends AppShell {
 			return;
 		}
 
-		$this->BcManager->setInstallSetting('BcApp.mobile', 'true');
-		$this->BcManager->setInstallSetting('BcApp.smartphone', 'true');
-		
 		clearAllCache();
 
 		$this->out("デモデータを初期化しました。");
@@ -133,6 +137,7 @@ class ResetShell extends AppShell {
 	protected function _initDemoUsers() {
 		
 		App::uses('AuthComponent', 'Controller/Component');
+		ClassRegistry::flush();
 		$User = ClassRegistry::init('User');
 
 		$ret = true;
@@ -167,11 +172,7 @@ class ResetShell extends AppShell {
  * 存在しない場合には有効化しない
  */
 	protected function _enablePlugins() {
-		$this->BcManager->installPlugin('Feed');
-		$this->BcManager->installPlugin('Mail');
-		$this->BcManager->installPlugin('Blog');
 		$this->BcManager->installPlugin('BcDemo');
-		$this->BcManager->installPlugin('Uploader');
 		return true;
 	}
 	
