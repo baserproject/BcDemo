@@ -2,6 +2,11 @@
 App::uses('AppShell', 'Console/Command');
 App::uses('BcManagerComponent', 'Controller/Component');
 
+/**
+ * Class ResetShell
+ *
+ * @property BcManagerComponent $BcManager
+ */
 class ResetShell extends AppShell {
 	
 /**
@@ -20,8 +25,16 @@ class ResetShell extends AppShell {
 		$dbConfig = getDbConfig();
 		
 		// データベース初期化
-		if (!$this->BcManager->initDb($dbConfig)) {
+		if (!$this->BcManager->deleteTables('default', $dbConfig)) {
 			$message = "データベースの初期化に失敗しました";
+			$this->log($message);
+			$this->err($message);
+			return;
+		}
+
+		// データベース構築
+		if (!$this->BcManager->constructionDb($dbConfig)) {
+			$message = "データベースの構築に失敗しました";
 			$this->log($message);
 			$this->err($message);
 			return;
@@ -154,11 +167,12 @@ class ResetShell extends AppShell {
  * 存在しない場合には有効化しない
  */
 	protected function _enablePlugins() {
-		
+		$this->BcManager->installPlugin('Feed');
+		$this->BcManager->installPlugin('Mail');
+		$this->BcManager->installPlugin('Blog');
 		$this->BcManager->installPlugin('BcDemo');
 		$this->BcManager->installPlugin('Uploader');
 		return true;
-		
 	}
 	
 }
