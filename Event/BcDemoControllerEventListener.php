@@ -45,10 +45,20 @@ class BcDemoControllerEventListener extends BcControllerEventListener {
  */
 	public function pluginsStartup(CakeEvent $event) {
 		$Controller = $event->subject();
-		if($Controller->request->action == 'admin_ajax_delete') {
-			if($Controller->request->params['pass'][0] == 'BcDemo') {
-				$Controller->ajaxError(400, 'デモサイトでデモプラグインは無効化できません。');
-			}
+		$action = $Controller->request->params['action'];
+		switch ($action) {
+			case 'admin_ajax_delete':
+				if($Controller->request->params['pass'][0] == 'BcDemo') {
+					$Controller->ajaxError(400, 'デモサイトでデモプラグインは無効化できません。');
+				}
+				break;
+			case 'admin_ajax_batch':
+				$pluginIds = $Controller->request->data['ListTool']['batch_targets'];
+				$plugins = $Controller->Plugin->find('list', ['fields' => ['id', 'name'], 'conditions' => ['id' => $pluginIds]]);
+				if(in_array('BcDemo', $plugins)) {
+					$Controller->ajaxError(400, 'デモサイトでデモプラグインは無効化できません。');
+				}
+				break;
 		}
 	}
 	
