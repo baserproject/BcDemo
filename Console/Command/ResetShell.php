@@ -67,13 +67,21 @@ class ResetShell extends AppShell {
 			return;
 		}
 
+		// プラグインの初期化
+		if(!$this->_initPlugins()) {
+			$message = "プラグインの初期化に失敗しました";
+			$this->log($message);
+			$this->err($message);
+			return;
+		}
+		
 		// コアプラグインのインストール
 		$dbDataPattern = Configure::read('BcApp.defaultTheme') . '.default';
 		if(!$this->BcManager->installCorePlugin($dbConfig, $dbDataPattern)) {
 			$this->log('コアプラグインのインストールに失敗しました。');
 			$result = false;
 		}
-
+		
 		// プラグイン有効化
 		if(!$this->_enablePlugins()) {
 			$message = "デモプラグインの有効化に失敗しました";
@@ -81,8 +89,6 @@ class ResetShell extends AppShell {
 			$this->err($message);
 			return;
 		}
-		
-		
 		
 		// テーマの配置
 		if (!$this->BcManager->deployTheme()) {
@@ -173,6 +179,23 @@ class ResetShell extends AppShell {
  */
 	protected function _enablePlugins() {
 		$this->BcManager->installPlugin('BcDemo');
+		return true;
+	}
+
+/**
+ * プラグインを初期化する
+ * 
+ * @return bool
+ */
+	protected function _initPlugins() {
+		$pluginPath = APP . 'Plugin';
+		$Folder = new Folder($pluginPath);
+		$files = $Folder->read(true, true, false);
+		foreach($files[0] as $file) {
+			if($file != 'BcDemo') {
+				$Folder->delete(APP . 'Plugin' . DS . $file);
+			}
+		}
 		return true;
 	}
 	
