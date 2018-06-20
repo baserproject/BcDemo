@@ -111,6 +111,12 @@ class ResetShell extends AppShell {
 			return;
 		}
 
+		// config.css 削除
+		$configCssPath = WWW_ROOT . 'files' . DS . 'theme_configs' . DS . 'config.css';
+		if(file_exists($configCssPath)) {
+			unlink($configCssPath);
+		}
+
 		clearAllCache();
 
 		$this->out("デモデータを初期化しました。");
