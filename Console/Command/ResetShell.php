@@ -138,6 +138,7 @@ class ResetShell extends AppShell {
 		$SiteConfig = ClassRegistry::init('SiteConfig');
 		$siteConfig = $SiteConfig->findExpanded();
 		$siteConfig['address'] = '福岡県福岡市博多区博多駅前';
+		$siteConfig['admin_theme'] = 'admin-third';
 		return $SiteConfig->saveKeyValue($siteConfig);
 	}
 
