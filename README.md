@@ -1,7 +1,7 @@
 BcDemo
 ==========
 baserCMS Demonstration Site Plugin
-Copyright 2008 - 2014, baserCMS Users Community  
+Copyright 2008 - 2021, baserCMS Users Community  
 
 Documentation
 -------------
